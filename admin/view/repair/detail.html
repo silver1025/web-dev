@@ -1,0 +1,150 @@
+<table class="table table-bordered">
+    <tr>
+        <td>工单号</td>
+        <td>{$info.woid}</td>
+    </tr>
+    <tr>
+        <td>报修人</td>
+        <td>{$info.name1}</td>
+    </tr>
+    <tr>
+        <td>报修账号</td>
+        <td>{$info.openid1}</td>
+    </tr>
+    <tr>
+        <td>报修人电话</td>
+        <td>{$info.telephone1}</td>
+    </tr>
+    <tr>
+        <td>无人时维修</td>
+        <td>{$info.alone}</td>
+    </tr>
+    <tr>
+        <td>楼栋</td>
+        <td>{$info.location}</td>
+    </tr>
+    <tr>
+        <td>详细地址</td>
+        <td>{$info.address}</td>
+    </tr>
+    <tr>
+        <td>报修类型</td>
+        <td>{$info.type}</td>
+    </tr>
+    <tr>
+        <td>报修内容</td>
+        <td>{$info.content}</td>
+    </tr>
+    {if condition="$info.assign neq '未指派' "}
+    <tr>
+        <td>维修人员</td>
+        <td>{$info.repairman}</td>
+    </tr>
+    {/if}
+    {if condition="$info.state eq '异常' "}
+    <tr>
+        <td>异常原因</td>
+        <td>{$info.comment}</td>
+    </tr>
+    {/if}
+    {if condition="$info.state eq '被退回' "}
+    <tr>
+        <td>拒单原因</td>
+        <td>{$info.comment}</td>
+    </tr>
+    {/if}
+    {if condition="$info.state eq '已结单' "}
+    <tr>
+        <td>评价状态</td>
+        <td>{$info.comment_state}</td>
+    </tr>
+    {if condition="$info.comment_state eq '已评价' "}
+    <tr>
+        <td>评星</td>
+        <td>{$info.star}</td>
+    </tr>
+    <tr>
+        <td>评价内容</td>
+        <td>{$info.comment}</td>
+    </tr>
+    {/if}
+    {/if}
+    <tr>
+        <td>提交时间</td>
+        <td>{$info.create_time}</td>
+    </tr>
+    <tr>
+        <td>派单状态</td>
+        <td><h4>{$info.assign}</h4></td>
+    </tr>
+    <tr>
+        <td>订单状态</td>
+        <td><h4>{$info.state}</h4></td>
+    </tr>
+</table>
+{if condition="$info.picture neq 0 "}
+<h4>报修图片</h4>
+<div style="height:400px;text-align:center">
+    <div id="myCarousel" class="carousel slide pad_010 b_k" data-ride="carousel">
+        <!-- 轮播（Carousel）指标 -->
+        <ol class="carousel-indicators" name="type" id="type">
+            {volist name="pictures" id="vo"}
+            <li data-target="#myCarousel" data-slide-to="{$i-1}" class='{if condition="$i eq 1 "}active{/if}'></li>
+            {/volist}
+        </ol>
+        <!-- 轮播（Carousel）项目 -->
+        <div class="carousel-inner bor_btm" role="listbox">
+            {volist name="pictures" id="vo"}
+            <div class='item {if condition="$i eq 1 "}active{/if}'>
+                <div class="pic">
+                    <img src="{$vo->path}" height="400px">
+                </div>
+            </div>
+            {/volist}
+            <!-- 轮播（Carousel）导航 -->
+            <a class="carousel-control left" href="#myCarousel" role="button" data-slide="prev">
+                <span class="glyphicon glyphicon-chevron-left" aria-hidden="false"></span>
+            </a>
+            <a class="carousel-control right" href="#myCarousel" role="button" data-slide="next">
+                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            </a>
+        </div>
+    </div>
+</div>
+{/if}
+{if condition="$info.picture2 neq 0 "}
+<h4>维修结果图片</h4>
+<div style="height:400px;text-align:center">
+    <div id="myCarousel2" class="carousel slide pad_010 b_k" data-ride="carousel">
+        <!-- 轮播（Carousel）指标 -->
+        <ol class="carousel-indicators" name="type" id="type">
+            {volist name="pictures2" id="vo"}
+            <li data-target="#myCarousel2" data-slide-to="{$i-1}" class='{if condition="$i eq 1 "}active{/if}'></li>
+            {/volist}
+        </ol>
+        <!-- 轮播（Carousel）项目 -->
+        <div class="carousel-inner bor_btm" role="listbox">
+            {volist name="pictures2" id="vo"}
+            <div class='item {if condition="$i eq 1 "}active{/if}'>
+                <div class="pic">
+                    <img src="{$vo->path}" height="400px">
+                </div>
+            </div>
+            {/volist}
+            <!-- 轮播（Carousel）导航 -->
+            <a class="carousel-control left" href="#myCarousel2" role="button" data-slide="prev">
+                <span class="glyphicon glyphicon-chevron-left" aria-hidden="false"></span>
+            </a>
+            <a class="carousel-control right" href="#myCarousel2" role="button" data-slide="next">
+                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            </a>
+        </div>
+    </div>
+</div>
+{/if}
+<script>
+    $(document).ready(function () {
+        $('#myCarousel').carousel();
+        $('#myCarousel2').carousel();
+    })
+</script>

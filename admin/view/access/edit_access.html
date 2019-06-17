@@ -1,0 +1,61 @@
+<div class="modal-body">
+    <form id="info">
+        <div class="form-group">
+            <label for="username">上级权限</label>
+            <select class="form-control" name="pid">
+                <option value="0">顶级权限</option>
+                {volist name="auth_rule_list" id="auth_rules"}
+                <option {if condition="$auth_rule['pid'] eq $auth_rules['id']" } selected {/if} value="{$auth_rules.id}">
+                    <?php if($auth_rules['level'] != 0){echo '|';} echo str_repeat('—', $auth_rules['level']*3)?>{$auth_rules.title}
+                </option>
+                {/volist}
+            </select>
+            <small class="form-text text-muted">*必填</small>
+        </div>
+        <div class="form-group">
+            <label class=" form-control-label" for="title">权限名称</label>
+            <input name="title" class="form-control" id="title" type="text" placeholder="" value="{$auth_rule.title}">
+            <small class="form-text text-muted">*必填</small>
+        </div>
+
+        <div class="form-group">
+            <label class=" form-control-label" for="name">控制器 / 方法</label>
+            <input name="name" class="form-control" id="name" type="text" placeholder="" value="{$auth_rule.name}">
+            <small class="form-text text-muted">*必填</small>
+        </div>
+        <input type="hidden" name="id" value="{$auth_rule.id}">
+    </form>
+</div>
+<div class="modal-footer">
+    <button id="submit" class="btn btn-primary">提交</button>
+</div>
+<script type="text/javascript">
+    $('#submit').on('click', function () {
+        var form_data = $('#info').serializeArray();
+        console.log(form_data);
+        for (let index = 0; index < form_data.length; index++) {
+            if (form_data[index].value == '') {
+                toastr.error("请完整填写信息");
+                return false;
+            }
+        }
+        $.post('/admin/access/edit_post_data', form_data, function (data) {
+            if (data.code) {
+                $("#edit").modal('hide');
+                swal({
+                    title: "提示",
+                    text: data.msg,
+                    type: "success"
+                }, function () {
+                    changemain('/admin/access/show');
+                });
+            } else {
+                swal({
+                    title: "提示",
+                    text: data.msg,
+                    type: "error"
+                });
+            }
+        });
+    });
+</script>

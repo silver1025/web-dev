@@ -1,0 +1,478 @@
+<div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4>工单查询</h4>
+        </div>
+        <div class="panel-body">
+            <div id="toolbar" class="ibox-tools">
+                <div class="pull-left">
+                    <select onchange="javascript:$('#tb_departments').bootstrapTable('refresh');" id="state"
+                        class="form-control">
+                        <option value="all">工单状态选择</option>
+                        <option value="all">全部</option>
+                        <option value="1">待处理</option>
+                        <option value="2">已处理</option>
+                        <option value="3">异常</option>
+                        <option value="4">已结单</option>
+                        <option value="5">被退回</option>
+                    </select>
+                </div>
+                <div class="pull-left">
+                    <select onchange="javascript:$('#tb_departments').bootstrapTable('refresh');" id="repairman"
+                        class="form-control">
+                        <option value="all">维修人员选择</option>
+                        <option value="all">全部</option>
+                        {volist name="repairman" id="vo"}
+                        <option value="{$vo->openid}">{$vo->name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <button type="button" class="btn btn-default pull-left" id="daterange-btn">
+                    <span><i class="fa fa-calendar"></i>日期选择</span>
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <input type="hidden" name="start_date" id="start_date" value="">
+                <input type="hidden" name="end_date" id="end_date" value="">
+                <button id="btn_add" type="button" class="btn btn-default pull-left">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+                </button>
+                <button id="btn_delete" type="button" class="btn btn-default pull-left">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>删除
+                </button>
+                <button id="btn_print" type="button" class="btn btn-default pull-left">
+                    <span class="glyphicon glyphicon-print" aria-hidden="true"></span>表格
+                </button>
+            </div>
+            <table id="tb_departments"></table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabelfile1">新增工单</h4>
+                </div>
+                <div class="add_repair">
+
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+</div>
+<div class="modal fade" id="assign" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabelfile2">派单/改派</h4>
+                </div>
+                <div class="assign_wo">
+
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+</div>
+<div class="modal fade" id="detail" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div>
+        <div class="modal-dialog  modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabelfile3">工单详情</h4>
+                </div>
+                <div class="modal-body">
+
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+</div>
+<div class="modal fade" id="refuse" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title" id="myModalLabelfile4">退回工单</h4>
+                </div>
+                <div class="refuse">
+
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+</div>
+<script type="text/javascript">
+    function operateFormatter(value, row, index) {
+        var buttons = [];
+        if (row.assign == '未指派' && row.state == '待处理') {
+            buttons.push(
+                '<button class="RoleOfedit assign btn btn-primary btn-sm" data-id=woid  data-toggle="modal" style="display:inline">派单</button>'
+            );
+        } else {
+            if (row.state != '异常' && row.state != '已结单' && row.state != '被退回') {
+                buttons.push(
+                    '<button class="RoleOfedit assign btn btn-danger btn-sm" data-id=woid  data-toggle="modal" style="display:inline">改派</button>'
+                );
+            }
+        }
+        if (row.assign == '未指派' && row.state == '待处理') {
+            buttons.push(
+                '<button class="RoleOfedit refuse btn btn-primary btn-sm" data-id=woid  data-toggle="modal" style="display:inline">退回</button>'
+            );
+        }
+        if (row.state == '异常') {
+            buttons.push(
+                '<button class="RoleOfedit repair_again btn btn-primary btn-sm" data-id=woid  data-toggle="modal" style="display:inline">再次维修</button>'
+            );
+        }
+        buttons.push(
+            '<button class="RoleOfedit detail btn btn-default btn-sm "   data-toggle="modal" style="display:inline">详情</button>'
+        );
+        return buttons.join(' ');
+    }
+    window.operateEvents = {
+
+        'click .assign': function (e, value, row, index) {
+            if (row.assign != '未指派') {
+                swal({
+                    title: "工单已指派维修人员，是否改派工单？",
+                    text: "",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    closeOnConfirm: true
+                }, function () {
+                    $.get('/admin/repair/assign_wo', {
+                        'woid': row.woid
+                    }, function (data) {
+                        $('#assign .assign_wo').html(data.data);
+                        $("#assign").modal('show');
+                    });
+                });
+            } else {
+                $.get('/admin/repair/assign_wo', {
+                    'woid': row.woid
+                }, function (data) {
+                    $('#assign .assign_wo').html(data.data);
+                    $("#assign").modal('show');
+                });
+            }
+        },
+
+        'click .detail': function (e, value, row, index) {
+            $.post('/admin/repair/get_detail', {
+                'woid': row.woid,
+            }, function (data) {
+                $('#detail .modal-body').html(data.data);
+                $("#detail").modal('show');
+            });
+        },
+
+        'click .refuse': function (e, value, row, index) {
+            $.get('/admin/repair/refuse_wo', {
+                'woid': row.woid,
+            }, function (data) {
+                $('#refuse .refuse').html(data.data);
+                $("#refuse").modal('show');
+            });
+        },
+
+        'click .repair_again': function (e, value, row, index) {
+            swal({
+                title: "确定再次维修该工单吗？",
+                text: "异常原因将被清空",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                cancelButtonText: "取消",
+                confirmButtonText: "确定",
+                closeOnConfirm: false
+            }, function () {
+                $.post('/admin/repair/repair_again', {
+                    'woid': row.woid
+                }, function (datas) {
+                    var types = 'error'
+                    if (datas.code) {
+                        types = 'success'
+                    }
+                    swal({
+                        title: "提示",
+                        text: datas.msg,
+                        type: types
+                    }, function () {
+                        $('#tb_departments').bootstrapTable('refresh')
+                    });
+                })
+            });
+        }
+    };
+    var TableInit = function () {
+        var oTableInit = new Object();
+        //初始化Table
+        oTableInit.Init = function () {
+            $('#tb_departments').bootstrapTable({
+                url: '/admin/repair/data', //请求后台的URL（*）
+                method: 'post', //请求方式（*）
+                toolbar: '#toolbar', //工具按钮用哪个容器
+                striped: true, //是否显示行间隔色
+                cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true, //是否显示分页（*）
+                sortable: true, //是否启用排序
+                sortOrder: "asc", //排序方式
+                sortName: 'woid', //排序依据的列
+                queryParams: oTableInit.queryParams, //传递参数（*）
+                sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+                pageNumber: 1, //初始化加载第一页，默认第一页
+                pageSize: 10, //每页的记录行数（*）
+                pageList: [10, 25, 50, 100], //可供选择的每页的行数（*）
+                search: false, //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                strictSearch: false,
+                showColumns: false, //是否显示所有的列
+                showRefresh: true, //是否显示刷新按钮
+                minimumCountColumns: 2, //最少允许的列数
+                clickToSelect: false, //是否启用点击选中行
+                //height: 500, //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                uniqueId: "woid", //每一行的唯一标识，一般为主键列
+                showToggle: false, //是否显示详细视图和列表视图的切换按钮
+                cardView: false, //是否显示详细视图
+                detailView: false, //是否显示父子表
+                columns: [{
+                    checkbox: true
+                }, {
+                    field: 'woid',
+                    title: '工单号',
+                    sortable: true
+                }, {
+                    field: 'name1',
+                    title: '报修人'
+                }, {
+                    field: 'openid1',
+                    title: '报修人学工号',
+                    visible: false
+                }, {
+                    field: 'telephone1',
+                    title: '报修人电话'
+                }, {
+                    field: 'alone',
+                    title: '无人时维修',
+                    formatter: function (value, row, index) {
+                        if (row['alone'] === 1) {
+                            return '接受';
+                        }
+                        if (row['alone'] === 0) {
+                            return '不接受';
+                        }
+                        return value;
+                    },
+                    sortable: true
+                }, {
+                    field: 'location',
+                    title: '楼栋',
+                    sortable: true
+                }, {
+                    field: 'address',
+                    title: '详细地址',
+                    visible: false
+                }, {
+                    field: 'type',
+                    title: '报修类型',
+                    sortable: true
+                }, {
+                    field: 'content',
+                    title: '报修内容',
+                    visible: false
+                }, {
+                    field: 'repairman',
+                    title: '维修人员',
+                    formatter: function (value, row, index) {
+                        if (row['assign'] === '已指派') {
+                            return row['repairman'];
+                        }
+                        if (row['assign'] === '未指派') {
+                            return '暂无';
+                        }
+                        return value;
+                    }
+                }, {
+                    field: 'assign',
+                    title: '派单状态',
+                    formatter: function (value, row, index) {
+                        if (row['assign'] === '已指派' && row['state'] === '待处理') {
+                            return '<span class="badge badge-primary">待接单</span>';
+                        }
+                        if (row['assign'] === '未指派' && row['state'] === '待处理') {
+                            return '<span class="badge badge-danger">未指派</span>';
+                        }
+                        if (row['state'] === '已处理') {
+                            return '<span class="badge badge-success">已接单</span>';
+                        }
+                        return '<span class="badge badge-info">已处理</span>';
+                    },
+                    sortable: true
+                }, {
+                    field: 'comment_state',
+                    title: '评价状态',
+                    visible: false,
+                    sortable: true
+                }, {
+                    field: 'state',
+                    title: '订单状态',
+                    formatter: function (value, row, index) {
+                        if (row['state'] === '待处理') {
+                            return '<button type="button" class="btn btn-danger btn-sm">待处理</button>';
+                        }
+                        if (row['state'] === '已处理') {
+                            return '<button type="button" class="btn btn-info btn-sm">已处理</button>';
+                        }
+                        if (row['state'] === '已结单') {
+                            return '<button type="button" class="btn btn-success btn-sm">已结单</button>';
+                        }
+                        if (row['state'] === '异常') {
+                            return '<button type="button" class="btn btn-warning btn-sm">异常</button>';
+                        }
+                        if (row['state'] === '被退回') {
+                            return '<button type="button" class="btn btn-secondary btn-sm">被退回</button>';
+                        }
+                        return value;
+                    },
+                    sortable: true
+                }, {
+                    field: 'operate',
+                    title: '操作',
+                    width: '150px',
+                    events: operateEvents,
+                    formatter: operateFormatter
+                }]
+            });
+        };
+
+        //得到查询的参数
+        oTableInit.queryParams = function (params) {
+            var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+                limit: params.limit, //页面大小
+                offset: params.offset, //页码
+                state: $("#state option:checked").val(),
+                repairman: $("#repairman option:checked").val(),
+                start_date: $('#start_date').val(),
+                end_date: $('#end_date').val(),
+                sortOrder: params.order, //排序
+                sortName: params.sort //排序字段
+            };
+            return temp;
+        };
+
+        return oTableInit;
+    };
+    var ButtonInit = function () {
+        var oInit = new Object();
+        var postdata = {};
+
+        oInit.Init = function () {
+            //初始化页面上面的按钮事件
+        };
+
+        return oInit;
+    };
+
+    $(function () {
+        $('#daterange-btn').daterangepicker({
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '本周': [moment().startOf('week'), moment().endOf('week')],
+                    '本月': [moment().startOf('month'), moment().endOf('month')],
+                    '今年': [moment().startOf('year'), moment().endOf('year')]
+                },
+                startDate: moment(),
+                endDate: moment().endOf('month')
+            },
+            function (start, end) {
+                $('#daterange-btn span').html(start.format('YYYY/MM/DD') + ' - ' + end.format(
+                    'YYYY/MM/DD'));
+                $('#start_date').val(start.format('YYYYMMDD'));
+                $('#end_date').val(end.format('YYYYMMDD'));
+                $('#tb_departments').bootstrapTable('refresh');
+            }
+        );
+
+        $('#btn_add').on('click', function () {
+            $.get('/admin/repair/add_wo', function (data) {
+                $('#edit .add_repair').html(data.data)
+            })
+            $("#edit").modal('show');
+        })
+
+        $('#btn_print').on('click', function () {
+            $.post('/admin/repair/print_excel_data', {
+                state: $("#state option:checked").val(),
+                repairman: $("#repairman option:checked").val(),
+                start_date: $('#start_date').val(),
+                end_date: $('#end_date').val()
+            }, function (data) {
+                window.location.href = "/admin/repair/print_excel";
+            })
+            return false;
+        })
+
+        $('#btn_delete').on('click', function () {
+            var row = $('#tb_departments').bootstrapTable('getSelections')
+            var row_str = ''
+            var row_arr = []
+            for (var i in row) {
+                console.log(i)
+                row_str += row[i].woid + " "
+                row_arr.push(row[i].woid)
+            }
+            console.log(row_arr)
+            swal({
+                title: "确定删除工单号为",
+                text: row_str + "的数据吗？",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                cancelButtonText: "取消",
+                confirmButtonText: "确定",
+                closeOnConfirm: false
+            }, function () {
+                $.post('/admin/repair/delete_woid', {
+                    'woids': row_arr
+                }, function (datas) {
+                    var types = 'error'
+                    if (datas.code) {
+                        types = 'success'
+                    }
+                    swal({
+                        title: "提示",
+                        text: datas.msg,
+                        type: types
+                    }, function () {
+                        $('#tb_departments').bootstrapTable('refresh')
+                    });
+                })
+            })
+        })
+        //1.初始化Table
+        var oTable = new TableInit();
+        oTable.Init();
+
+        //2.初始化Button的点击事件
+        var oButtonInit = new ButtonInit();
+        oButtonInit.Init();
+
+    });
+</script>

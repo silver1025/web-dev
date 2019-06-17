@@ -1,0 +1,60 @@
+<div class="modal-body">
+    <form id="info">
+        <div class="form-group">
+            <label for="username">上级权限</label>
+            <select class="form-control" name="pid">
+                <option value="0">顶级权限</option>
+                {volist name="auth_rule_list" id="auth_rule"}
+                <option value="{$auth_rule.id}">
+                    <?php if($auth_rule['level'] != 0){echo '|';} echo str_repeat('—', $auth_rule['level']*3)?>{$auth_rule.title}
+                </option>
+                {/volist}
+            </select>
+            <small class="form-text text-muted">*必填</small>
+        </div>
+        <div class="form-group">
+            <label class=" form-control-label" for="title">权限名称</label>
+            <input name="title" class="form-control" id="title" type="text" placeholder="">
+            <small class="form-text text-muted">*必填</small>
+        </div>
+
+        <div class="form-group">
+            <label class=" form-control-label" for="name">控制器 / 方法</label>
+            <input name="name" class="form-control" id="name" type="text" placeholder="">
+            <small class="form-text text-muted">*必填</small>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button id="submit" class="btn btn-primary">提交</button>
+</div>
+<script type="text/javascript">
+    $('#submit').on('click', function () {
+        var form_data = $('#info').serializeArray();
+        console.log(form_data);
+        for (let index = 0; index < form_data.length; index++) {
+            if (form_data[index].value == '') {
+                toastr.error("请完整填写信息");
+                return false;
+            }
+        }
+        $.post('/admin/access/add_post_data', form_data, function (data) {
+            if (data.code) {
+                $("#add").modal('hide');
+                swal({
+                    title: "提示",
+                    text: data.msg,
+                    type: "success"
+                }, function () {
+                    changemain('/admin/access/show');
+                });
+            } else {
+                swal({
+                    title: "提示",
+                    text: data.msg,
+                    type: "error"
+                });
+            }
+        });
+    });
+</script>

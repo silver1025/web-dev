@@ -1,0 +1,141 @@
+<div class="panel-body" style="padding-bottom:0px;">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4>权限管理</h4>
+    </div>
+    <div class="panel-body">
+      <div id="toolbar" class="btn-group">
+        <button type="button" class="btn btn-default" id="btn_add">
+          <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+        </button>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">权限名称</th>
+            <th scope="col">控制器 / 方法</th>
+            <th scope="col">级别</th>
+            <th scope="col">状态</th>
+            <th scope="col">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {volist name="auth_rule_list" id="auth_rule"}
+          <tr>
+            <td><?php if($auth_rule['level'] != 1){echo '&nbsp&nbsp&nbsp&nbsp├─────';}?>
+              {$auth_rule.title}</td>
+            <td>{$auth_rule.name}</td>
+            <td>{$auth_rule.level}级</td>
+            <td><?php if($auth_rule['status'] == 1){echo '启用';} else{echo '关闭';}?></td>
+            <td>
+              <button class="btn btn-white btn-sm lock" data-id="{$auth_rule.id}"><i class="fa fa-lock"></i>&nbsp;
+                <?php if($auth_rule['status'] != 1){echo '启用';} else{echo '关闭';}?></button>
+              <button class="btn btn-white btn-sm edit" data-id="{$auth_rule.id}"><i class="fa fa-pencil"></i>&nbsp;
+                编辑</button>
+              <button class="btn btn-danger btn-sm btn_delete" data-id="{$auth_rule.id}"><i
+                  class="fa fa-trash-o"></i>&nbsp; 删除</button>
+            </td>
+          </tr>
+          {/volist}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="add" tabindex="-1" role="dialog">
+  <div class="modal-dialog  modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">添加新权限控制</h4>
+      </div>
+      <div class="add_access">
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal fade" id="edit" tabindex="-1" role="dialog">
+  <div class="modal-dialog  modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">编辑权限控制</h4>
+      </div>
+      <div class="edit_access">
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script type="text/javascript">
+  $(function () {
+    $('#btn_add').on('click', function () {
+      $.get('/admin/access/add', function (data) {
+        $('#add .add_access').html(data.data)
+      })
+      $("#add").modal('show');
+    });
+
+    $('.edit').on('click', function () {
+      var id = $(this).data('id');
+      $.get('/admin/access/edit', {
+        'id': id
+      }, function (data) {
+        $('#edit .edit_access').html(data.data)
+      });
+      $("#edit").modal('show');
+    });
+
+    $('.btn_delete').on('click', function () {
+      var id = $(this).data('id');
+      swal({
+          title: "确定删除吗？",
+          text: "删除后将无法恢复！",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#DD6B55",
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          closeOnConfirm: false
+        },
+        function () {
+          $.post('/admin/access/delete', {
+            'id': id
+          }, function (data) {
+            if (data.code) {
+              swal({
+                title: "删除",
+                text: data.msg,
+                type: 'success'
+              }, function () {
+                changemain('/admin/access/show')
+              });
+            } else {
+              swal("删除", data.msg, "error");
+            }
+          })
+        });
+    });
+
+    $('.lock').on('click', function (e, value, row, index) {
+      var id = $(this).data('id');
+      $.post('/admin/access/lock', {
+        'id': id
+      }, function (data) {
+        if (data.code) {
+          swal({
+            title: "提示",
+            text: data.msg,
+            type: 'success'
+          }, function () {
+            changemain('/admin/access/show')
+          });
+        } else {
+          swal("提示", data.msg, "error");
+        }
+      })
+    });
+  });
+</script>

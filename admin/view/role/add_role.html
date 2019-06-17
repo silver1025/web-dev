@@ -1,0 +1,99 @@
+<div class="modal-body">
+    <form id="info">
+        <div class="form-group">
+            <label for="username">用户组名称</label>
+            <input type="text" name="title" class="form-control">
+            <small class="form-text text-muted">*必填</small>
+        </div>
+        <div class="form-group">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">配置权限</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name='auth_rule_list' id="auth_rule"}
+                    <tr>
+                        <td scope="row">
+                            <label for="">
+                                    <?php if($auth_rule['level'] != 1){echo '&nbsp&nbsp&nbsp&nbsp├─────';}?>
+                                    <input dataid="id-{$auth_rule.dataid}" class="checkbox-parent {if condition="$auth_rule['level'] neq 0"} checkbox-child {/if}" type="checkbox" name="rules[]" value="{$auth_rule.id}" >
+                                    <span class="{if condition="$auth_rule['level'] eq 0"} font-weight-bold {/if}">{$auth_rule.title}</span>
+                            </label>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button id="submit" class="btn btn-primary">提交</button>
+</div>
+<script type="text/javascript">
+    /* 权限配置 */
+    $(function () {
+        //动态选择框，上下级选中状态变化
+        $('input.checkbox-parent').on('change', function () {
+            var dataid = $(this).attr("dataid");
+            $('input[dataid^=' + dataid + ']').prop('checked', $(this).is(':checked'));
+        });
+        $('input.checkbox-child').on('change', function () {
+            var dataid = $(this).attr("dataid");
+            dataid = dataid.substring(0, dataid.lastIndexOf("-"));
+            var parent = $('input[dataid=' + dataid + ']');
+            if ($(this).is(':checked')) {
+                parent.prop('checked', true);
+                //循环到顶级
+                while (dataid.lastIndexOf("-") != 2) {
+                    dataid = dataid.substring(0, dataid.lastIndexOf("-"));
+                    parent = $('input[dataid=' + dataid + ']');
+                    parent.prop('checked', true);
+                }
+            } else {
+                //父级
+                if ($('input[dataid^=' + dataid + '-]:checked').length == 0) {
+                    parent.prop('checked', false);
+                    //循环到顶级
+                    while (dataid.lastIndexOf("-") != 2) {
+                        dataid = dataid.substring(0, dataid.lastIndexOf("-"));
+                        parent = $('input[dataid=' + dataid + ']');
+                        if ($('input[dataid^=' + dataid + '-]:checked').length == 0) {
+                            parent.prop('checked', false);
+                        }
+                    }
+                }
+            }
+        });
+        $('#submit').on('click', function () {
+            var form_data = $('#info').serializeArray();
+            console.log(form_data);
+            for (let index = 0; index < form_data.length; index++) {
+                if (form_data[index].value == '') {
+                    toastr.error("请完整填写信息");
+                    return false;
+                }
+            }
+            $.post('/admin/role/add_post_data', form_data, function (data) {
+                if (data.code) {
+                    $("#add").modal('hide');
+                    swal({
+                        title: "提示",
+                        text: data.msg,
+                        type: "success"
+                    }, function () {
+                        $('#tb_departments').bootstrapTable('refresh');
+                    });
+                } else {
+                    swal({
+                        title: "提示",
+                        text: data.msg,
+                        type: "error"
+                    });
+                }
+            });
+        });
+    });
+</script>

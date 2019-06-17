@@ -1,0 +1,189 @@
+<div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4>系统设置</h4>
+        </div>
+        <div class="panel-body">
+            <div class="project-list">
+                <table class="table table-hover">
+                    <tbody>
+                        <tr>
+                            <td width="20%" class="project-title">
+                                <span>
+                                    <h4>系统状态</h4>
+                                </span>
+                            </td>
+                            <td width="40%" class="project-status">
+                                {switch name="$system_state" }
+                                {case value="on"}<span class="btn btn-success">使用中</span>{/case}
+                                {case value="off"}<span class="btn btn-danger">停用中</span>{/case}
+                                {default /}无
+                                {/switch}
+                            </td>
+                            <td width="40%" class="project-status">
+                                {switch name="$system_state" }
+                                {case value="on"}<a href="#" class="btn btn-danger btn-sm suspend">
+                                    <i class="fa fa-lock"></i>&nbsp;暂停使用系统{/case}
+                                {case value="off"}<a href="#" class="btn btn-success btn-sm start">
+                                    <i class="fa fa-lock"></i>&nbsp;启用系统{/case}
+                                {/switch}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="20%" class="project-title">
+                                <span>
+                                    <h4>报修电话</h4>
+                                </span>
+                            </td>
+                            <td width="40%" class="project-title">
+                                <input type="telephone" class="form-control" name="repair_department_tel"
+                                    id="repair_department_tel" value="{$repair_department_tel}" required>
+                            </td>
+                            <td width="40%" class="project-status">
+                                <a href="#" data-type="repair_department_tel" class="btn btn-white btn-sm option"><i
+                                        class="fa fa-paste"></i>
+                                    修改报修电话
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="20%" class="project-title">
+                                <span>
+                                    <h4>工作时间</h4>
+                                </span>
+                            </td>
+                            <td width="40%" class="project-title">
+                                <input type="text" class="form-control" name="work_time" id="work_time"
+                                    value="{$work_time}" required>
+                            </td>
+                            <td width="40%" class="project-status">
+                                <a href="#" data-type="work_time" class="btn btn-white btn-sm option"><i
+                                        class="fa fa-paste"></i>
+                                    修改工作时间
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="20%" class="project-title">
+                                <span>
+                                    <h4>反馈QQ群号</h4>
+                                </span>
+                            </td>
+                            <td width="40%" class="project-title">
+                                <input type="text" class="form-control" name="feedback_group" id="feedback_group"
+                                    value="{$feedback_group}" required>
+                            </td>
+                            <td width="40%" class="project-status">
+                                <a href="#" data-type="feedback_group" class="btn btn-white btn-sm option"><i
+                                        class="fa fa-paste"></i>
+                                    修改反馈QQ群号
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="20%" class="project-title">
+                                <span>
+                                    <h4>值班人员电话</h4>
+                                </span>
+                            </td>
+                            <td width="40%" class="project-title">
+                                <input type="telephone" class="form-control" name="on_duty_tel" id="on_duty_tel"
+                                    value="{$on_duty_tel}" required>
+                            </td>
+                            <td width="40%" class="project-status">
+                                <a href="#" data-type="on_duty_tel" class="btn btn-white btn-sm option"><i
+                                        class="fa fa-paste"></i>
+                                    修改值班人员电话
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        $('.option').on('click', function () {
+            var option_type = $(this).data('type');
+            var content = document.getElementById(option_type).value;
+            if (content == '') {
+                swal({
+                title: "提示",
+                text: '请填写信息',
+                type: 'warning'
+                });
+                return false;
+            }
+            $.post('/admin/config/' + option_type, {
+                'content': content
+            }, function (data) {
+                if (data.code) {
+                    swal({
+                        title: "提示！",
+                        text: data.msg,
+                        type: 'success'
+                    }, function () {
+                        changemain('/admin/config/show')
+                    });
+                } else {
+                    swal("提示！", data.msg, "error");
+                }
+            })
+        })
+        $('.suspend').on('click', function () {
+            swal({
+                    title: "确定停用系统吗？",
+                    text: "停用期间小程序无法使用",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    closeOnConfirm: false
+                },
+                function () {
+                    $.post('/admin/config/suspend', function (data) {
+                        if (data.code) {
+                            swal({
+                                title: "停用",
+                                text: '停用系统成功',
+                                type: 'success'
+                            }, function () {
+                                changemain('/admin/config/show')
+                            });
+                        } else {
+                            swal("停用", "停用系统失败", "error");
+                        }
+                    })
+                });
+        })
+        $('.start').on('click', function () {
+            swal({
+                    title: "确定启用系统吗？",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    closeOnConfirm: false
+                },
+                function () {
+                    $.post('/admin/config/start',  function (data) {
+                        if (data.code) {
+                            swal({
+                                title: "启用",
+                                text: '启用系统成功',
+                                type: 'success'
+                            }, function () {
+                                changemain('/admin/config/show')
+                            });
+                        } else {
+                            swal("启用", "启用系统失败", "error");
+                        }
+                    })
+                });
+        })
+    })
+</script>

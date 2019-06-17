@@ -1,0 +1,50 @@
+<div class="modal-body">
+    <form id="refuse">
+        <div class="form-group">
+            <input type="hidden" name="woid" id="woid" value="{$woid}">
+        </div>
+        <div class="form-group">
+            <label for="refuse_comment">退回原因（必填） </label><br>
+            <textarea class="form-control" name="refuse_comment" id="refuse_comment" style="width: 100%" rows="4"
+                required></textarea>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button id="submit" class="btn btn-primary">提交</button>
+</div>
+
+
+<script>
+    $('#submit').on('click', function () {
+        var woid = $('#woid').val();
+        var comment = $('#refuse_comment').val();
+        if (comment == '') {
+            swal({
+                title: "提示",
+                text: '请填写退回原因',
+                type: 'warning'
+            });
+            return false;
+        }
+        $.post('/admin/repair/refuse_wo_data', {
+            'comment': comment,
+            'woid': woid
+        }, function (data) {
+            var types = "error";
+            if (data.code) {
+                types = "success";
+                $("#refuse").modal('hide');
+                $('#tb_departments').bootstrapTable('refresh');
+            }
+            swal({
+                title: "提示",
+                text: data.msg,
+                type: types
+            });
+        });
+    });
+    $('#reset').on('click', function () {
+        document.getElementById("add_repair").reset();
+    });
+</script>

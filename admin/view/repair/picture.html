@@ -1,0 +1,30 @@
+<div id="myCarousel" class="carousel slide pad_010 b_k" data-ride="carousel">
+    <!-- 轮播（Carousel）指标 -->
+    <ol class="carousel-indicators" name="type" id="type">
+        {volist name="pictures" id="vo"}
+        <li data-target="#myCarousel" data-slide-to="{$i-1}" class='{if condition="$i eq 1 "}active{/if}'></li>
+        {/volist}
+    </ol>
+    <!-- 轮播（Carousel）项目 -->
+    <div class="carousel-inner bor_btm" role="listbox">
+        {volist name="pictures" id="vo"}
+        <div class='item {if condition="$i eq 1 "}active{/if}'>
+            <div class="pic">
+                <img src="{$vo->path}" width="100%" height="100%">
+            </div>
+        </div>
+        {/volist}
+        <!-- 轮播（Carousel）导航 -->
+        <a class="carousel-control left" href="#myCarousel" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="false"></span>
+        </a>
+        <a class=" carousel-control right" href="#myCarousel" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+        </a>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#myCarousel').carousel();
+    })
+</script>

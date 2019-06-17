@@ -1,0 +1,108 @@
+<!-- <form id="add_repair" action="/admin/repair/add_wo" enctype="multipart/form-data" method="post"> -->
+<div class="modal-body">
+    <form id="add_repair" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="openid">账号ID（必填）</label>
+            <!-- <div class="input-group"> -->
+            <input type="text" name="openid" id="openid" class="form-control" required>
+            <!-- <span class="input-group-btn">
+                <button class="btn btn-default" id="search" type="button">查找</button>
+            </span> -->
+            <!-- </div>/input-group -->
+        </div>
+        <div class="form-group">
+            <label for="type">报修类型（必填）</label>
+            <select name="type" id="type" class="form-control">
+                {volist name="type" id="vo"}
+                <option value="{$vo.id}">{$vo.type}</option>
+                {/volist}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="name">联系人（必填）</label>
+            <input type="text" class="form-control" name="name" id="name" required>
+        </div>
+        <div class="form-group">
+            <label for="telephone">联系电话（必填）</label>
+            <input type="telephone" class="form-control" name="telephone" id="telephone" required>
+        </div>
+        <div class="form-group">
+            <div class="form-inline">
+                <input type="checkbox" name="alone" id="alone"> <label for="alone">接受无人时宿管员陪同维修</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="address">故障地址（必填）</label>
+            <div class="form-inline">
+                位置（必填）：
+                <select name="location" id="location" class="form-control">
+                    {volist name="location" id="vo"}
+                    <option value="{$vo.id}">{$vo.location}</option>
+                    {/volist}
+                </select>
+            </div>
+            详细地址（必填）：<input type="text" class="form-control" value="" name="address" id="address" required>
+        </div>
+
+        <div class="form-group">
+            <label for="content">简单描述（必填） </label><br>
+            <textarea class="form-control" name="content" id="content" style="width: 100%" rows="4" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="files">上传图片</label>
+            <input type="file" name="files[]" id="files" multiple="multiple">
+            <p class="help-block"></p>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button id="reset" class="btn btn-default">重置</button>
+    <button id="submit" class="btn btn-primary">提交</button>
+</div>
+
+
+<script>
+    $('#submit').on('click', function () {
+        var form_data = $("#add_repair").serializeArray();
+        for (let index = 0; index < form_data.length; index++) {
+            if (form_data[index].value == '') {
+                swal({
+                title: "提示",
+                text: '请填写全部信息',
+                type: 'warning'
+                });
+                return false;
+            }
+        }
+        var form_data2 = new FormData(document.getElementById("add_repair"));
+        $.ajax({
+            method: 'POST',
+            data: form_data2,
+            url: '/admin/repair/add_wo_data',
+            // async: false, // 同步上传，默认(true)异步
+            dataType:'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                var types = "error";
+                if (data.code) {
+                    types = "success";
+                    $("#edit").modal('hide');
+                    $('#tb_departments').bootstrapTable('refresh');
+                }
+                swal({
+                    title: "提示",
+                    text: data.msg,
+                    type: types
+                });
+            },
+            error: function () {
+                console.log('上传失败');
+            }
+        });
+    });
+    $('#reset').on('click', function () {
+        document.getElementById("add_repair").reset();
+    });
+</script>

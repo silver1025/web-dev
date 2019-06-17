@@ -1,0 +1,255 @@
+<div style="margin-top: 10px;">
+    <div class="col-sm-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title" style="padding-top: 3px;border-top-width: 1px;border-top-style: solid;">
+                <h4>数据统计</h4>
+            </div>
+            <div class="ibox-content col-sm-12">
+                <div class="col-sm-12">
+                    <div class="input-group">
+                        <button type="button" class="btn btn-default pull-left" id="daterange-btn">
+                            <span><i class="fa fa-calendar"></i> 日期选择</span>
+                            <i class="fa fa-caret-down"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" name="start_date" id="start_date" value="">
+                    <input type="hidden" name="end_date" id="end_date" value="">
+                </div>
+                <div class="col-sm-6" style="text-align:center">
+                    <h3>报修类型统计</h3>
+                </div>
+                <div class="col-sm-6" style="text-align:center">
+                    <h3>评分统计</h3>
+                </div>
+                <div id="main" class="col-sm-6" style="height:400px;"></div>
+                <div id="main2" class="col-sm-6" style="height:400px;border-left: 1px solid gray;"></div>
+                <hr />
+                <div class="col-sm-12">
+                    <div class="pull-left">
+                        <select onchange="javascript:showCharts(4, 'main4');" id="date_range" class="form-control">
+                            <option value="2">时间范围选择</option>
+                            <option value="1">本周</option>
+                            <option value="2">本月</option>
+                            <option value="3">本年</option>
+                            <option value="4">去年</option>
+                        </select>
+                    </div>&nbsp;
+                    <div class="pull-left">
+                        <select onchange="javascript:showCharts(4, 'main4');" id="repairman" class="form-control">
+                            <option value="all">维修人员选择</option>
+                            {volist name="repairman" id="vo"}
+                            <option value="{$vo->openid}">{$vo->name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-12" style="text-align:center">
+                    <h3>维修人员维修数量统计</h3>
+                </div>
+                <div id="main4" class="col-sm-12" style="height:400px;"></div>
+                <hr />
+                <div class="col-sm-12">
+                    <div class="pull-left">
+                        <select onchange="javascript:showCharts(3, 'main3');" id="date_range2" class="form-control">
+                            <option value="1">年份选择</option>
+                            <option value="1">今年</option>
+                            <option value="2">去年</option>
+                        </select>
+                    </div>、
+                </div>
+                <div class="col-sm-12" style="text-align:center">
+                    <h3>年度报修数量统计</h3>
+                </div>
+                <div id="main3" class="col-sm-12" style="height:400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function showCharts(type, id) {
+        var dom = document.getElementById(id);
+        var myChart = echarts.init(dom, 'macarons');
+        myChart.showLoading();
+        if (type == 1 || type == 2) {
+            $.get('/admin/statistics/get_type_score_data', {
+                'type': type,
+                'start': $('#start_date').val(),
+                'end': $('#end_date').val()
+            }, function (data) {
+                var option = {
+                    calculable: true,
+                    toolbox: {
+                        show: false,
+                        feature: {
+                            restore: {
+                                show: true
+                            },
+                            saveAsImage: {
+                                show: true
+                            }
+                        }
+                    },
+                    title: {
+                        subtext: data.start + "到" + data.end,
+                        x: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: "{a} <br/>{b} : {c} ({d}%)"
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        x: 'left'
+                    },
+                    series: [{
+                        itemStyle: {
+                            emphasis: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            },
+                            normal: {
+                                label: {
+                                    show: true,
+                                    formatter: '{b} : {c} ({d}%)'
+                                }
+                            }
+                        },
+                        labelLine: {
+                            show: true
+                        },
+                        name: '数量统计',
+                        type: 'pie',
+                        radius: '55%',
+                        center: ['50%', '60%'],
+                        data: data.list
+                    }]
+                };
+                myChart.hideLoading();
+                myChart.setOption(option);
+                $(window).resize(myChart.resize);
+            })
+        }
+        if (type == 3) {
+            $.get('/admin/statistics/get_year_data',{
+                'date_range': $('#date_range2 option:checked').val()
+            }, function (data) {
+                var option = {
+                    tooltip: {},
+                    legend: {
+                        orient: 'vertical',
+                        x: 'left'
+                    },
+                    dataset: {
+                        // 这里指定了维度名的顺序，从而可以利用默认的维度到坐标轴的映射。
+                        // 如果不指定 dimensions，也可以通过指定 series.encode 完成映射，参见后文。
+                        dimensions: ['月份', '数量'],
+                        source: data.list
+                    },
+                    xAxis: {
+                        type: 'category'
+                    },
+                    yAxis: {},
+                    series: [{
+                        itemStyle: {
+                            emphasis: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            },
+                            normal: {
+                                label: {
+                                    show: true
+                                }
+                            }
+                        },
+                        labelLine: {
+                            show: true
+                        },
+                        name: '数量',
+                        type: 'bar',
+                        radius: '55%',
+                        center: ['50%', '60%'],
+                    }]
+                };
+                myChart.hideLoading();
+                myChart.setOption(option);
+                $(window).resize(myChart.resize);
+            });
+        }
+        if (type == 4) {
+            $.get('/admin/statistics/get_repairman_data', {
+                'date_range': $('#date_range option:checked').val(),
+                'repairman': $('#repairman option:checked').val()
+            }, function (data) {
+                var option = {
+                    tooltip: {},
+                    legend: {
+                        orient: 'vertical',
+                        x: 'left'
+                    },
+                    dataset: {
+                        // 这里指定了维度名的顺序，从而可以利用默认的维度到坐标轴的映射。
+                        // 如果不指定 dimensions，也可以通过指定 series.encode 完成映射，参见后文。
+                        dimensions: ['时间', '数量'],
+                        source: data.list
+                    },
+                    xAxis: {
+                        type: 'category'
+                    },
+                    yAxis: {},
+                    series: [{
+                        itemStyle: {
+                            emphasis: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            },
+                            normal: {
+                                label: {
+                                    show: true
+                                }
+                            }
+                        },
+                        labelLine: {
+                            show: true
+                        },
+                        name: '数量',
+                        type: 'bar',
+                        radius: '55%',
+                        center: ['50%', '60%'],
+                    }]
+                };
+                myChart.hideLoading();
+                myChart.setOption(option);
+                $(window).resize(myChart.resize);
+            });
+        }
+    }
+    $(function () {
+        $('#daterange-btn').daterangepicker({
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '本周': [moment().startOf('week'), moment().endOf('week')],
+                    '本月': [moment().startOf('month'), moment().endOf('month')],
+                    '今年': [moment().startOf('year'), moment().endOf('year')]
+                },
+                startDate: moment(),
+                endDate: moment().endOf('month')
+            },
+            function (start, end) {
+                $('#daterange-btn span').html(start.format('MMMM D, YYYY') + ' - ' + end.format(
+                    'MMMM D, YYYY'));
+                $('#start_date').val(start.format('YYYYMMDD'));
+                $('#end_date').val(end.format('YYYYMMDD'));
+                showCharts(1, "main");
+                showCharts(2, "main2");
+            }
+        );
+
+        showCharts(1, "main");
+        showCharts(2, "main2");
+        showCharts(3, "main3");
+        showCharts(4, "main4");
+    })
+</script>

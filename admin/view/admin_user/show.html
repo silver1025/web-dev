@@ -1,0 +1,228 @@
+<div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4>管理员管理</h4>
+        </div>
+        <div class="panel-body">
+            <div id="toolbar" class="btn-group">
+                <button type="button" class="btn btn-default" id="btn_add">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+                </button>
+            </div>
+            <table id="tb_departments"></table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="add" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">添加新管理员</h4>
+            </div>
+            <div class="add_admin_user">
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal fade" id="edit" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">编辑管理员</h4>
+            </div>
+            <div class="edit_admin_user">
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script type="text/javascript">
+    function operateFormatter(value, row, index) {
+        var buttons = [];
+        if (row.statu) {
+            buttons.push(
+                '<button data-type="lock" class="btn btn-white btn-sm option" style="display:inline"><i class="fa fa-lock"></i> 锁定</button>'
+            );
+        } else {
+            buttons.push(
+                '<button data-type="lock" class="btn btn-white btn-sm option" style="display:inline"><i class="fa fa-lock"></i> 解锁 </button>'
+            );
+        }
+        buttons.push(
+            '<button data-type="reset" class="btn btn-white btn-sm option" style="display:inline"><i class="fa fa-paste"></i> 重置密码 </button>'
+        );
+        buttons.push(
+            '<button class="btn btn-white btn-sm edit" style="display:inline"><i class="fa fa-pencil"></i> 编辑 </button>'
+        );
+        buttons.push(
+            '<button class="btn btn-danger btn-sm btn_delete" style="display:inline"><i class="fa fa-eraser"></i> 删除 </button>'
+        );
+        return buttons.join('');
+    }
+    window.operateEvents = {
+        'click .btn_delete': function (e, value, row, index) {
+            var id = row.id;
+            swal({
+                    title: "确定删除吗？",
+                    text: "删除后将无法恢复！",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    closeOnConfirm: false
+                },
+                function () {
+                    $.post('/admin/admin_user/delete', {
+                        'id': id
+                    }, function (data) {
+                        if (data.code) {
+                            swal({
+                                title: "删除",
+                                text: '删除成功',
+                                type: 'success'
+                            }, function () {
+                                $('#tb_departments').bootstrapTable('refresh')
+                            });
+                        } else {
+                            swal("删除", "删除失败", "error");
+                        }
+                    })
+                });
+        },
+
+        'click .option': function (e, value, row, index) {
+            var option_type = $(this).data('type');
+            var id = row.id;
+            $.post('/admin/admin_user/' + option_type, {
+                'id': id
+            }, function (data) {
+                if (data.code) {
+                    swal({
+                        title: "提示！",
+                        text: data.msg,
+                        type: 'success'
+                    }, function () {
+                        $('#tb_departments').bootstrapTable('refresh')
+                    });
+                } else {
+                    swal("提示！", data.msg, "error");
+                }
+            })
+        },
+
+        'click .edit': function (e, value, row, index) {
+            var id = row.id;
+            $.get('/admin/admin_user/edit', {
+                'id': id
+            }, function (data) {
+                $('#edit .edit_admin_user').html(data.data);
+            })
+            $("#edit").modal('show');
+        }
+    };
+    var TableInit = function () {
+        var oTableInit = new Object();
+        //初始化Table
+        oTableInit.Init = function () {
+            $('#tb_departments').bootstrapTable({
+                url: '/admin/admin_user/data', //请求后台的URL（*）
+                method: 'post', //请求方式（*）
+                toolbar: '#toolbar', //工具按钮用哪个容器
+                striped: true, //是否显示行间隔色
+                cache: false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true, //是否显示分页（*）
+                sortable: true, //是否启用排序
+                sortOrder: "asc", //排序方式
+                queryParams: oTableInit.queryParams, //传递参数（*）
+                sidePagination: "server", //分页方式：client客户端分页，server服务端分页（*）
+                pageNumber: 1, //初始化加载第一页，默认第一页
+                pageSize: 10, //每页的记录行数（*）
+                pageList: [10, 25, 50, 100], //可供选择的每页的行数（*）
+                search: true, //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                strictSearch: true,
+                showColumns: true, //是否显示所有的列
+                showRefresh: true, //是否显示刷新按钮
+                minimumCountColumns: 2, //最少允许的列数
+                clickToSelect: false, //是否启用点击选中行
+                //height: 500, //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                uniqueId: "id", //每一行的唯一标识，一般为主键列
+                showToggle: true, //是否显示详细视图和列表视图的切换按钮
+                cardView: false, //是否显示详细视图
+                detailView: false, //是否显示父子表
+                columns: [{
+                    field: 'username',
+                    title: '账号'
+                }, {
+                    field: 'user_nickname',
+                    title: '姓名'
+                }, {
+                    field: 'group_title',
+                    title: '所属用户组'
+                }, {
+                    field: 'create_time',
+                    title: '创建时间'
+                }, {
+                    field: 'statu',
+                    title: '账号状态',
+                    formatter: function (value, row, index) {
+                        if (row['statu'] === 1) {
+                            return '正常';
+                        } else {
+                            return '锁定';
+                        }
+                    }
+                }, {
+                    field: 'operate',
+                    title: '操作',
+                    width: '300px',
+                    events: operateEvents,
+                    formatter: operateFormatter
+                }]
+            });
+        };
+
+        //得到查询的参数
+        oTableInit.queryParams = function (params) {
+            var temp = { //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+                limit: params.limit, //页面大小
+                offset: params.offset, //页码
+                search: params.search
+            };
+            return temp;
+        };
+
+        return oTableInit;
+    };
+    var ButtonInit = function () {
+        var oInit = new Object();
+        var postdata = {};
+
+        oInit.Init = function () {
+            //初始化页面上面的按钮事件
+        };
+
+        return oInit;
+    };
+
+    $(function () {
+        $('#btn_add').on('click', function () {
+            $.get('/admin/admin_user/add', function (data) {
+                $('#add .add_admin_user').html(data.data)
+            })
+            $("#add").modal('show');
+        });
+
+        //1.初始化Table
+        var oTable = new TableInit();
+        oTable.Init();
+
+        //2.初始化Button的点击事件
+        var oButtonInit = new ButtonInit();
+        oButtonInit.Init();
+    });
+</script>
